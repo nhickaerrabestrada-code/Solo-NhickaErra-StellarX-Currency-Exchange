@@ -1,40 +1,74 @@
 'use client';
-import { useState } from 'react';
-import { fundTestnetAccount } from '@/lib/stellar';
+
+import { useState } from "react";
+import { fundTestnetAccount } from "@/lib/stellar";
 
 export default function FundAccount({
   publicKey,
-  onFunded,
 }: {
-  publicKey: string;
-  onFunded: () => void;
+  publicKey: string | null;
 }) {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
 
-  const fund = async () => {
-    setLoading(true);
-    setError('');
-    try {
+  const [loading,setLoading] = useState(false);
+  const [error,setError] = useState("");
+
+  async function fund(){
+
+    if(!publicKey){
+      setError("Connect wallet first");
+      return;
+    }
+
+    try{
+
+      setLoading(true);
+      setError("");
+
       await fundTestnetAccount(publicKey);
-      onFunded();
-    } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Funding failed');
-    } finally {
+
+      alert("Account funded!");
+
+    }catch(e){
+
+      setError(
+        e instanceof Error 
+        ? e.message 
+        : "Funding failed"
+      );
+
+    }finally{
       setLoading(false);
     }
-  };
 
-  return (
+  }
+
+
+  return(
     <div>
+
       <button
         onClick={fund}
         disabled={loading}
-        className="rounded bg-amber-400 px-3 py-1.5 text-sm font-medium text-amber-950 transition-colors hover:bg-amber-500 disabled:opacity-50"
+        className="rounded bg-yellow-400 px-4 py-2"
       >
-        {loading ? 'Funding…' : 'Fund with Friendbot (testnet)'}
+
+      {
+        loading
+        ? "Funding..."
+        : "Fund Testnet Account"
+      }
+
       </button>
-      {error && <p className="mt-1 text-sm text-red-500">{error}</p>}
+
+
+      {
+        error &&
+        <p className="text-red-500">
+          {error}
+        </p>
+      }
+
     </div>
-  );
+  )
+
 }
