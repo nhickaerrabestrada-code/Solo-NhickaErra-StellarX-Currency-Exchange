@@ -1,48 +1,147 @@
 'use client';
-import { useState } from 'react';
-import { buildAddUsdcTrustlineXDR } from '@/lib/trustline';
-import { signAndSubmit } from '@/lib/sign';
 
-type Status = 'idle' | 'working' | 'done' | 'error';
+import { useState } from 'react';
+import { addTrustline } from '@/lib/payment';
+
+
+type Props = {
+  publicKey: string | null;
+  onAdded?: () => void;
+};
+
+
 
 export default function AddTrustline({
   publicKey,
-  onDone,
-}: {
-  publicKey: string;
-  onDone: () => void;
-}) {
-  const [status, setStatus] = useState<Status>('idle');
+  onAdded,
+}: Props) {
+
+
+  const [loading, setLoading] = useState(false);
+
   const [error, setError] = useState('');
 
-  const add = async () => {
-    setStatus('working');
-    setError('');
-    try {
-      const xdr = await buildAddUsdcTrustlineXDR(publicKey);
-      await signAndSubmit(xdr, publicKey);
-      setStatus('done');
-      onDone();
-    } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Failed to add trustline');
-      setStatus('error');
+  const [success, setSuccess] = useState('');
+
+
+
+  const handleAdd = async () => {
+
+
+    if (!publicKey) {
+
+      setError('Please connect your wallet first');
+
+      return;
+
     }
+
+
+
+    setLoading(true);
+
+    setError('');
+
+    setSuccess('');
+
+
+
+    try {
+
+
+      await addTrustline(publicKey);
+
+
+
+      setSuccess('USDC trustline added successfully');
+
+
+      onAdded?.();
+
+
+
+    } catch (e: unknown) {
+
+
+      setError(
+        e instanceof Error
+          ? e.message
+          : 'Failed to add trustline'
+      );
+
+
+    } finally {
+
+
+      setLoading(false);
+
+
+    }
+
   };
 
-  if (status === 'done') {
-    return <p className="text-sm text-emerald-600">USDC trustline added.</p>;
-  }
+
+
+
 
   return (
-    <div>
+
+    <div className="rounded border border-gray-200 bg-white p-6">
+
+
+      <h2 className="mb-4 text-lg font-semibold text-gray-900">
+        Add Trustline
+      </h2>
+
+
+
       <button
-        onClick={add}
-        disabled={status === 'working'}
-        className="rounded border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700 transition-colors hover:bg-gray-50 disabled:opacity-50"
+        onClick={handleAdd}
+        disabled={loading}
+        className="rounded bg-purple-600 px-4 py-2 text-white hover:bg-purple-700 disabled:opacity-50"
       >
-        {status === 'working' ? 'Adding USDC trustline…' : 'Add USDC trustline'}
+
+        {loading
+          ? 'Adding...'
+          : 'Add USDC Trustline'
+        }
+
       </button>
-      {error && <p className="mt-1 text-sm text-red-500">{error}</p>}
+
+
+
+
+
+      {success && (
+
+        <p className="mt-2 text-sm text-green-600">
+
+          {success}
+
+        </p>
+
+      )}
+
+
+
+
+
+      {error && (
+
+        <p className="mt-2 text-sm text-red-600">
+
+          {error}
+
+        </p>
+
+      )}
+
+
+
+
+
     </div>
+
   );
+
 }
