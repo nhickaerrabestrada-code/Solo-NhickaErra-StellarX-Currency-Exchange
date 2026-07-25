@@ -1,132 +1,64 @@
-# StellarX Workshop Starter
+## Project Name
 
-A ready-to-run scaffold for a **StellarX workshop**. It gives you a
-working Stellar app on **testnet** so you can spend the workshop bending it toward
-your own idea instead of fighting setup.
+StellarX: Cross-Game Currency Exchange
 
-It covers **both** workshop tracks:
 
-- **Fullstack payments** — a Next.js app: connect Freighter → fund via Friendbot →
-  view XLM/USDC balances → send a payment → confirm on-chain.
-- **Soroban smart contract** — a small Rust contract (a *Savings Goal* tracker)
-  you build, test, deploy with the Stellar CLI, and call from the same frontend.
+## One-Line Description
 
-```
-.
-├── web/                      # Next.js 16 + TypeScript + Tailwind frontend
-├── contracts/savings-goal/   # Rust Soroban contract (init / contribute / get_state)
-├── scripts/                  # deploy.ps1 (Windows) / deploy.sh
-├── Cargo.toml                # Rust workspace
-└── CLAUDE.md                 # stack notes + Stellar gotchas (read this!)
-```
+A Stellar-powered platform that allows players to exchange different in-game currencies using blockchain-based assets.
 
-## Prerequisites
 
-- **Node.js 20+** and **npm** — for the frontend.
-- **Freighter** browser extension — create a wallet, switch it to **Test Net**.
-- For the contract track: **Rust**, the `wasm32v1-none` target, and the **Stellar CLI**.
+## Track
 
-You can run the **payments demo with just Node + Freighter** — Rust/CLI are only
-needed to deploy the Soroban contract.
+Track 2 Financial Inclusion & Everyday Payments
 
-### Install the contract toolchain (Windows)
 
-Install Rust and the Stellar CLI:
+## Problem It Solves
 
-```powershell
-winget install --id Rustlang.Rustup -e --accept-source-agreements --accept-package-agreements
-winget install --id Stellar.StellarCLI -e --accept-source-agreements --accept-package-agreements
-```
+Players from different games cannot exchange or use their unused in-game currencies outside their original game ecosystem. This creates wasted digital value because each game's currency is locked within its own platform.
 
-Then **open a new terminal** (so `cargo`/`stellar` land on PATH) and give Rust a
-working linker — pick one:
+StellarX solves this problem by allowing game currencies to become Stellar assets that can be traded and exchanged through the Stellar Decentralized Exchange (SDEX).
 
-**Easiest — GNU toolchain** (no admin, no large download):
 
-```powershell
-rustup default stable-x86_64-pc-windows-gnu
-rustup target add wasm32v1-none
-```
+## How It Uses Stellar
 
-**Or MSVC** (matches Stellar's docs): install the **Visual C++ Build Tools** (the
-"Desktop development with C++" workload), then:
+StellarX uses Stellar's decentralized exchange (SDEX) to enable cross-game currency trading.
 
-```powershell
-rustup target add wasm32v1-none
-```
+Each game can create its own Stellar asset that represents its in-game currency. Players can exchange these assets securely using Stellar's fast transactions and low fees.
 
-> If `cargo` fails with *"linker `link.exe` not found"*, you skipped the step
-> above — use the GNU toolchain or install the Build Tools.
+Stellar features used:
 
-On macOS/Linux: install Rust from <https://rustup.rs>, run
-`rustup target add wasm32v1-none`, and install the Stellar CLI
-(`brew install stellar-cli`).
+- Stellar Assets - represent different game currencies
+- Stellar Decentralized Exchange (SDEX) - allows users to trade between assets
+- Stellar Wallets - manage player accounts and transactions
+- Soroban Smart Contracts - for future automation of exchange rules and game integrations
 
-## 1. Run the frontend (the part that demos immediately)
 
-```powershell
-cd web
-npm install        # already run if you scaffolded via this repo
-npm run dev
-```
+## GitHub Repository
 
-Open <http://localhost:3000>, then:
+https://github.com/nhickaerrabestrada-code
 
-1. **Connect Freighter** (approve in the extension; make sure it's on Test Net).
-2. **Fund with Friendbot** — your XLM balance jumps to ~10,000.
-3. **Send a payment** to another *existing, funded* testnet account
-   (create one at <https://laboratory.stellar.org/#account-creator?network=test>).
-4. Watch the status go Building → Signing → Submitting → Confirming → Success,
-   then open the **Stellar Expert** link to see it on-chain.
 
-`web/.env.local` is pre-filled with testnet config. `NEXT_PUBLIC_CONTRACT_ID` is
-left empty — the Savings Goal panel shows deploy instructions until you set it.
+## Network & Deployment
 
-## 2. Build, test & deploy the Soroban contract
+- Network: Stellar Testnet
+- Live app URL: Runs locally — see README
+- Contract IDs / asset issuers: N/A
 
-```powershell
-# from the repo root
-cargo test                 # runs the contract unit tests (no network needed)
 
-# deploy to testnet + auto-wire the contract ID into web/.env.local
-.\scripts\deploy.ps1       # macOS/Linux:  ./scripts/deploy.sh
-```
+## Team
 
-The deploy script will: create+fund a testnet identity (if needed), run
-`stellar contract build`, deploy, initialise the goal (target `1000`), and write
-`NEXT_PUBLIC_CONTRACT_ID` into `web/.env.local`. **Restart `npm run dev`** and the
-**Savings Goal** panel goes live: it reads on-chain progress and lets a connected
-wallet `contribute` (a real signed Soroban transaction).
+- Nhicka Erra B. Estrada — @nhickaerrabestrada-code
 
-### The contract (`contracts/savings-goal/src/lib.rs`)
 
-| Function | Purpose |
-|---|---|
-| `init(target: i128)` | Set the savings target (once). |
-| `contribute(amount: i128) -> i128` | Add to the saved total; returns the new total. |
-| `get_state() -> State` | Read `{ saved, target }`. |
+## Novelty Note
 
-It uses plain integer state (no token transfers) so it's bulletproof in a live
-demo. To make it move real money, swap `contribute` to call the XLM/USDC SAC
-`transfer` and store per-user contributions — see CLAUDE.md for the SAC addresses.
+StellarX allows players to treat in-game currencies as transferable digital assets instead of locked virtual points.
 
-## 3. Make it your idea
+By using Stellar's SDEX, different games can participate in a shared currency ecosystem where players can exchange unused game currencies and create additional value from their digital assets.
 
-This is your *starting point*, not the answer. Pick an idea + track from the
-workshop's 300-ideas list (Philippines remittance / payments / financial
-inclusion themes score well), then reshape the components and the contract.
-Good extension paths: transaction history from Horizon, USDC trustline + send,
-a swap via Soroswap, a price feed via Reflector.
 
-For a fully worked example built on this scaffold, see the **Paluwagan** app in
-`..\Stellar-Workshop-PUP-May-2026-EXAMPLE`.
+## Anything Else
 
-## Troubleshooting
-
-- **Freighter "not detected"** — install it, reload the page, and confirm it's unlocked.
-- **Payment fails `op_no_destination`** — fund the destination account first.
-- **`tx_bad_auth`** — wrong network passphrase; this app uses `Networks.TESTNET`.
-- **Contract panel can't read state** — make sure you deployed *and* ran `init`,
-  and that `NEXT_PUBLIC_CONTRACT_ID` is set, then restart the dev server.
-
+Future improvements include adding more game integrations, automated currency exchange rates, NFT item trading, and Soroban smart contracts for advanced game features.
 See **CLAUDE.md** for the full list of Stellar gotchas.
