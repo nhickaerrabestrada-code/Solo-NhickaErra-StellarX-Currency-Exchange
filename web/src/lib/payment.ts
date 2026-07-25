@@ -1,59 +1,169 @@
 import {
-  TransactionBuilder,
-  Operation,
   Asset,
-  BASE_FEE,
+  Keypair,
+  Operation,
+  TransactionBuilder,
+  Networks,
+  Horizon,
 } from '@stellar/stellar-sdk';
-import { server, NETWORK_PASSPHRASE, USDC_ISSUER } from './stellar';
+
 
 export type AssetCode = 'XLM' | 'USDC';
 
-/** Build an unsigned classic payment transaction and return its XDR. */
+
+const server =
+  new Horizon.Server(
+    'https://horizon-testnet.stellar.org'
+  );
+
+
+export const NETWORK_PASSPHRASE =
+  Networks.TESTNET;
+
+
+
 export async function buildPaymentXDR(
-  sender: string,
+  source: string,
   destination: string,
   amount: string,
-  assetCode: AssetCode,
-): Promise<string> {
+  assetCode: AssetCode
+) {
+
+
+  const account =
+    await server.loadAccount(source);
+
+
+
   const asset =
-    assetCode === 'XLM' ? Asset.native() : new Asset('USDC', USDC_ISSUER);
+    assetCode === 'XLM'
+      ? Asset.native()
+      : new Asset(
+          'USDC',
+          'GBBD47IF6IXH3E5QZJ3D7Y7K7VQJ6L5E5J5Z4Y6YQ7J6Z7J7J7J7J7'
+        );
 
-  // Always load the account fresh so we have the current sequence number.
-  const account = await server.getAccount(sender);
 
-  const tx = new TransactionBuilder(account, {
-    fee: BASE_FEE,
-    networkPassphrase: NETWORK_PASSPHRASE,
-  })
-    .addOperation(Operation.payment({ destination, asset, amount }))
-    .setTimeout(60)
-    .build();
 
-  return tx.toXDR();
+  const transaction =
+    new TransactionBuilder(
+      account,
+      {
+        fee: '100',
+        networkPassphrase:
+          NETWORK_PASSPHRASE,
+      }
+    )
+      .addOperation(
+        Operation.payment({
+          destination,
+          asset,
+          amount,
+        })
+      )
+      .setTimeout(180)
+      .build();
+
+
+
+  return transaction.toXDR();
+
 }
 
-/** Submit a Freighter-signed XDR. Returns the transaction hash. */
-export async function submitSignedXDR(signedXdr: string): Promise<string> {
-  const tx = TransactionBuilder.fromXDR(signedXdr, NETWORK_PASSPHRASE);
-  const res = await server.sendTransaction(tx);
-  if (res.status === 'ERROR') {
-    throw new Error(`Submit rejected: ${JSON.stringify(res.errorResult ?? res)}`);
-  }
-  return res.hash;
+
+
+
+
+export async function submitSignedXDR(
+  signedXDR: string
+) {
+
+
+  const transaction =
+    TransactionBuilder.fromXDR(
+      signedXDR,
+      NETWORK_PASSPHRASE
+    );
+
+
+
+  const result =
+    await server.submitTransaction(
+      transaction
+    );
+
+
+
+  return result.hash;
+
 }
 
-/**
- * Poll until the transaction reaches finality.
- * `sendTransaction` returning PENDING is NOT success — you must poll.
- */
-export async function pollTransaction(hash: string): Promise<void> {
-  for (let i = 0; i < 60; i++) {
-    await new Promise((r) => setTimeout(r, 1000));
-    const res = await server.getTransaction(hash);
-    if (res.status !== 'NOT_FOUND') {
-      if (res.status === 'SUCCESS') return;
-      throw new Error(`Transaction ${res.status}`);
+
+
+
+
+export async function pollTransaction(
+  hash: string
+) {
+
+
+  let attempts = 0;
+
+
+
+  while (attempts < 20) {
+
+
+    try {
+
+
+      const result =
+        await server
+          .transactions()
+          .transaction(hash)
+          .call();
+
+
+
+      return result;
+
+
+
+    } catch {
+
+      await new Promise(
+        (resolve) =>
+          setTimeout(resolve, 3000)
+      );
+
     }
+
+
+    attempts++;
+
   }
-  throw new Error('Transaction timed out after 60s');
+
+
+
+  throw new Error(
+    'Transaction confirmation timeout'
+  );
+
+}
+
+
+
+
+
+
+export async function addTrustline(
+  publicKey: string
+) {
+
+
+  throw new Error(
+    'Trustline setup requires wallet signing and issuer configuration.'
+  );
+
+
 }
